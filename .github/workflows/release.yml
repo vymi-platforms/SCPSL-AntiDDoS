@@ -31,6 +31,8 @@ jobs:
       - name: Generate Release Notes
         id: release_notes
         shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG="${GITHUB_REF_NAME}"
           echo "Processing tag: $TAG"
@@ -52,17 +54,32 @@ jobs:
             echo "Previous tag found: $PREV_TAG"
             echo "### 📝 Commits relative to \`$PREV_TAG\`:" >> release_body.md
             echo "" >> release_body.md
-            COMMITS=$(git log "${PREV_TAG}..${TAG}" --pretty=format:"* %s ([%h](https://github.com/${{ github.repository }}/commit/%H)) — by @%an")
-            if [ -z "$COMMITS" ]; then
-              echo "* No new commits between \`$PREV_TAG\` and \`$TAG\`." >> release_body.md
-            else
-              echo "$COMMITS" >> release_body.md
-            fi
+            RANGE="${PREV_TAG}..${TAG}"
           else
             echo "No previous tag found, listing commits for $TAG."
             echo "### 📝 Commits in this release:" >> release_body.md
             echo "" >> release_body.md
-            git log "${TAG}" --pretty=format:"* %s ([%h](https://github.com/${{ github.repository }}/commit/%H)) — by @%an" >> release_body.md
+            RANGE="${TAG}"
+          fi
+
+          COUNT=0
+          while IFS="|" read -r commit_hash subject author; do
+            [ -z "$commit_hash" ] && continue
+            COUNT=$((COUNT + 1))
+            short_hash="${commit_hash:0:7}"
+            
+            # Fetch the actual GitHub username associated with the commit author email
+            gh_user=$(gh api "repos/${{ github.repository }}/commits/${commit_hash}" --jq '.author.login' 2>/dev/null || true)
+            
+            if [ -n "$gh_user" ] && [ "$gh_user" != "null" ]; then
+              echo "* ${subject} ([${short_hash}](https://github.com/${{ github.repository }}/commit/${commit_hash})) — by @${gh_user}" >> release_body.md
+            else
+              echo "* ${subject} ([${short_hash}](https://github.com/${{ github.repository }}/commit/${commit_hash})) — by **${author}**" >> release_body.md
+            fi
+          done < <(git log "${RANGE}" --pretty=format:"%H|%s|%an")
+
+          if [ "$COUNT" -eq 0 ]; then
+            echo "* No new commits found." >> release_body.md
           fi
 
           echo "" >> release_body.md
