@@ -8,6 +8,7 @@
   <a href="https://github.com/vymi-platforms/SCPSL-AntiDDoS/releases"><img src="https://img.shields.io/github/v/release/vymi-platforms/SCPSL-AntiDDoS?color=blue&label=release" alt="Release"></a>
   <a href="AntiDDoS/AntiDDoS.csproj"><img src="https://img.shields.io/badge/.NET%20Framework-4.8-green.svg" alt="Target Framework"></a>
   <a href="https://github.com/CedMod/LabApi"><img src="https://img.shields.io/badge/API-LabAPI-orange.svg" alt="LabAPI"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-Non--Commercial-blue.svg" alt="License"></a>
   <img src="https://img.shields.io/badge/status-production--ready-brightgreen.svg" alt="Status">
 </p>
 
@@ -233,6 +234,7 @@ To deploy **full comprehensive protection** for your entire server infrastructur
 
 ## 👥 Authors & Contact
 
-- **Organization:** [Vymi Platforms LLC](https://github.com/vymi-platforms)
-- **Developer:** `wexels.dev` (📧 [mail@wexels.dev](mailto:mail@wexels.dev))
-- **Base:** built upon research and codebase from *FUTUR*'s
+- 👨‍💻 **Lead Developer & Maintainer:** [@wexelsdev](https://github.com/wexelsdev) (`wexels.dev`)
+  - Contact / Comprehensive Protection inquiries: [mail@wexels.dev](mailto:mail@wexels.dev)
+- 🏢 **Project / Organization:** [Vymi Platforms](https://github.com/vymi-platforms)
+- 🤝 **Base Plugin:** based on the original plugin by [@I-WAS-FUTURE](https://github.com/I-WAS-FUTURE) ([AntiDDoS repository](https://github.com/I-WAS-FUTURE/AntiDDoS))
