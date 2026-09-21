@@ -10,6 +10,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+    <PackageReference Include="Krafs.Publicizer" Version="2.2.1" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Publicize Include="Assembly-CSharp" />
+    <Publicize Include="Mirror" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="..\_deps\*.dll">
       <HintPath>%(Identity)</HintPath>
       <Private>False</Private>

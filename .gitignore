@@ -416,3 +416,11 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# Local dependencies (Unity and SCP:SL assemblies must not be committed to git)
+_deps/
+_deps
+
+# Local Rider / Editor caches
+.local/
+Library/

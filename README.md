@@ -158,20 +158,32 @@ flowchart TD
 ## 🛠️ Сборка и установка
 
 ### Требования:
-- [.NET SDK](https://dotnet.microsoft.com/download) (рекомендуется .NET 8 / 9 SDK или MSBuild)
-- Целевая платформа: `.NET Framework 4.8`
-- Сервер [SCP: Secret Laboratory](https://scpslgame.com/) с установленным [LabAPI](https://github.com/CedMod/LabApi)
+- [.NET SDK](https://dotnet.microsoft.com/download) (.NET 8 / 9 / 10 SDK)
+- Сервер [SCP: Secret Laboratory](https://scpslgame.com/) с установленным [LabAPI](https://github.com/northwood-studios/LabAPI)
 
 ### Сборка из исходников:
 
-```bash
-# Клонирование репозитория
-git clone https://github.com/vymi-platforms/SCPSL-AntiDDoS.git
-cd SCPSL-AntiDDoS
+> [!NOTE]
+> В соответствии с лицензионным соглашением Unity (EULA) и политикой Northwood Studios, проприетарные бинарники движка (`UnityEngine*.dll`) и игровые сборки (`Assembly-CSharp.dll`) **не хранятся** в репозитории. Для локальной сборки их необходимо предоставить из вашего сервера SCP:SL.
 
-# Сборка Release-конфигурации
-dotnet build AntiDDoS/AntiDDoS.csproj -c Release
-```
+1. Клонируйте репозиторий:
+   ```bash
+   git clone https://github.com/vymi-platforms/SCPSL-AntiDDoS.git
+   cd SCPSL-AntiDDoS
+   ```
+
+2. Создайте папку `_deps` в корне проекта (она добавлена в `.gitignore`) и поместите туда библиотеки из директории вашего сервера `SCPSL_Data/Managed/`:
+   - `Assembly-CSharp.dll` (или publicized-версию)
+   - `Mirror.dll`
+   - `UnityEngine.CoreModule.dll`
+   - `UnityEngine.dll`
+   - `LabApi.dll` (из релиза [LabAPI Releases](https://github.com/northwood-studios/LabAPI/releases))
+   - `0Harmony.dll`
+
+3. Скомпилируйте плагин:
+   ```bash
+   dotnet build AntiDDoS/AntiDDoS.csproj -c Release
+   ```
 
 Скомпилированная библиотека будет находиться в:
 ```text

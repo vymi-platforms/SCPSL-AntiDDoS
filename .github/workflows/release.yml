@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - '**'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -24,11 +25,42 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
+      - name: Setup SteamCMD
+        uses: buildalon/setup-steamcmd@v1
+
+      - name: Download SCP:SL Dedicated Server via SteamCMD
+        shell: bash
+        run: |
+          mkdir -p _deps
+          steamcmd +force_install_dir "$GITHUB_WORKSPACE/scpsl_server" +login anonymous +app_update 996560 validate +quit
+          
+          # Copy managed game DLLs to _deps
+          cp scpsl_server/SCPSL_Data/Managed/Assembly-CSharp.dll _deps/
+          cp scpsl_server/SCPSL_Data/Managed/Assembly-CSharp.dll _deps/Assembly-CSharp_publicized.dll
+          cp scpsl_server/SCPSL_Data/Managed/Mirror.dll _deps/
+          cp scpsl_server/SCPSL_Data/Managed/Mirror.dll _deps/Mirror_publicized.dll
+          cp scpsl_server/SCPSL_Data/Managed/UnityEngine*.dll _deps/
+          cp scpsl_server/SCPSL_Data/Managed/System*.dll _deps/ 2>/dev/null || true
+          cp scpsl_server/SCPSL_Data/Managed/mscorlib.dll _deps/ 2>/dev/null || true
+          cp scpsl_server/SCPSL_Data/Managed/netstandard.dll _deps/ 2>/dev/null || true
+
+      - name: Download LabAPI & Harmony
+        shell: bash
+        run: |
+          curl -sL "https://github.com/northwood-studios/LabAPI/releases/latest/download/LabApi.dll" -o _deps/LabApi.dll
+          if [ ! -f "_deps/0Harmony.dll" ]; then
+            curl -sL "https://www.nuget.org/api/v2/package/Lib.Harmony/2.3.3" -o harmony.zip
+            unzip -q -o harmony.zip "lib/net48/0Harmony.dll" -d tmp_harmony || unzip -q -o harmony.zip "lib/net45/0Harmony.dll" -d tmp_harmony
+            mv tmp_harmony/lib/*/0Harmony.dll _deps/0Harmony.dll
+            rm -rf tmp_harmony harmony.zip
+          fi
+
       - name: Build AntiDDoS Plugin (Release)
         run: |
           dotnet build AntiDDoS/AntiDDoS.csproj -c Release
 
       - name: Generate Release Notes
+        if: startsWith(github.ref, 'refs/tags/')
         id: release_notes
         shell: bash
         env:
@@ -89,6 +121,7 @@ jobs:
           echo "- \`AntiDDoS.pdb\` — Debug symbols" >> release_body.md
 
       - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
