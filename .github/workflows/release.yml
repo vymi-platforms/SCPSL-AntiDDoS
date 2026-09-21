@@ -1,0 +1,86 @@
+name: Publish Release
+
+on:
+  push:
+    tags:
+      - '**'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    name: Build & Release AntiDDoS
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Build AntiDDoS Plugin (Release)
+        run: |
+          dotnet build AntiDDoS/AntiDDoS.csproj -c Release
+
+      - name: Generate Release Notes
+        id: release_notes
+        shell: bash
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          echo "Processing tag: $TAG"
+
+          # Attempt to find the previous tag relative to current tag
+          PREV_TAG=$(git describe --tags --abbrev=0 "${TAG}^" 2>/dev/null || true)
+
+          cat << 'EOF' > release_body.md
+          ## 🛡️ AntiDDoS Release
+
+          > **Note:** This plugin is part of the **Baleygr** DDoS protection suite by **Vymi**.
+          > *Please note: this plugin alone will not protect against many types of attacks (volumetric L3/L4 floods, UDP amplification/reflection, line saturation). For comprehensive server protection, contact us at:* **`mail@wexels.dev`**.
+
+          ---
+
+          EOF
+
+          if [ -n "$PREV_TAG" ]; then
+            echo "Previous tag found: $PREV_TAG"
+            echo "### 📝 Commits relative to \`$PREV_TAG\`:" >> release_body.md
+            echo "" >> release_body.md
+            COMMITS=$(git log "${PREV_TAG}..${TAG}" --pretty=format:"* %s ([%h](https://github.com/${{ github.repository }}/commit/%H)) — by @%an")
+            if [ -z "$COMMITS" ]; then
+              echo "* No new commits between \`$PREV_TAG\` and \`$TAG\`." >> release_body.md
+            else
+              echo "$COMMITS" >> release_body.md
+            fi
+          else
+            echo "No previous tag found, listing commits for $TAG."
+            echo "### 📝 Commits in this release:" >> release_body.md
+            echo "" >> release_body.md
+            git log "${TAG}" --pretty=format:"* %s ([%h](https://github.com/${{ github.repository }}/commit/%H)) — by @%an" >> release_body.md
+          fi
+
+          echo "" >> release_body.md
+          echo "---" >> release_body.md
+          echo "### 📦 Artifacts:" >> release_body.md
+          echo "- \`AntiDDoS.dll\` — LabAPI plugin binary" >> release_body.md
+          echo "- \`AntiDDoS.pdb\` — Debug symbols" >> release_body.md
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          body_path: release_body.md
+          files: |
+            AntiDDoS/bin/Release/net48/AntiDDoS.dll
+            AntiDDoS/bin/Release/net48/AntiDDoS.pdb
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
